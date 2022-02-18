@@ -1,0 +1,210 @@
+### USING PALMERPENGUINS DATASET
+install.packages("palmerpenguins")
+library(palmerpenguins)
+data("penguins")
+View(penguins)
+
+library(tidyr)
+
+#drop N|A values using library tidyr
+clean <- drop_na(penguins)
+view(clean)
+str(clean)
+
+----------------------------------------
+#Using librarys to clean up dataset
+library(here)
+library(skimr)
+library(janitor)
+#Summary of penguins dataset
+skim_without_charts(penguins)
+# A quick idea of the dataset
+glimpse(penguins)
+
+#Selecting only the species column
+penguins %>% 
+  select(species)
+
+#Selecting everything except the species column
+penguins %>% 
+  select(-species)
+
+#Changing names of the column island for island_new
+penguins %>% 
+  rename(island_new = island)
+
+#Making all the column names upper case
+rename_with(penguins,toupper)
+
+#Making all column names back to lower case
+rename_with(penguins,tolower)
+
+#Making sure theres only characters, numbers, and underscores in names
+clean_names(penguins)
+--------------------------------
+##Organazing the data
+#Table sorted by bill lenght in ascending order
+penguins %>% arrange(bill_length_mm)
+
+#Table sorted by bill lenght in descending order
+penguins %>% arrange(-bill_length_mm)
+
+#Saving as a dataframe without losing data form the original dataset
+penguins2 <- penguins %>% arrange(-bill_length_mm)
+view(penguins2)
+
+#Using group by by a certain column(island) and performing operations on those groups and then using the summarize function to use the mean bill lenght, I use drop_na to adresses missing values in our dataset useful in using summarize function
+penguins %>% group_by(island) %>% drop_na() %>% summarize(mean_bill_lenght = mean(bill_length_mm))
+
+#Same as the above one but using max bill length
+penguins %>% group_by(island) %>% drop_na() %>% summarize(max_bill_lenght = max(bill_length_mm))
+
+# Group by island and species and then summarize to calculate the mean and max. Thanks to piping I can combine all this cleaning and transforming tasks into one code chunk
+penguins %>% group_by(species, island) %>% drop_na() %>% summarize(max_bl = max(bill_length_mm), mean_bl = mean(bill_length_mm))
+
+# Filtering exactly on Adelie penguin obtaining a data frame
+penguins %>% filter(species == "Adelie")
+
+# Creating new columns to show body mass in kg and flipper length in m
+library(dplyr)
+penguins %>% 
+  mutate(body_mass_kg = body_mass_g/1000, flipper_length_m = flipper_length_mm/1000)
+
+------------------------------------
+  ##Transforming data
+  #Creating a data frame
+  
+id <- c(1:10)
+
+name <- c("John Mendes", "Rob Stewart", "Rachel Abrahamson", "Christy Hickman", "Johnson Harper", "Candace Miller", "Carlson Landy", "Pansy Jordan", "Darius Berry", "Claudia Garcia")
+
+job_title <- c("Professional", "Programmer", "Management", "Clerical", "Developer", "Programmer", "Management", "Clerical", "Developer", "Programmer")
+
+#Naming our dataframe
+employee <- data.frame(id, name, job_title)
+
+print(employee)
+
+#Separating first name and last name on the dataframe
+separate(employee,name, into= c('first_name','last_name'),sep = ' ')
+
+#Contrary we can use unite to unite first name and last name, didn't used it on this dataframe
+unite(employee,'name',first_name, last_name,sep = ' ')
+
+-----------------------------
+##Creating Vizuals using palmerpenguins dataset
+  library(ggplot2)
+library(palmerpenguins)
+
+#Making a scatterplot
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g))
+
+#Adding color to species to have a better visualizations
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g,color=species))
+
+#Using shapes to species
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g, shape=species))
+
+#Adding both shapes and color to species
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g, shape=species, color=species))
+
+#Adding size to the above one
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g, shape=species, color=species, size=species))
+
+#using alpha to add transparency to species
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g,alpha=species))
+
+#Changing color to the scatterplot
+ggplot(data=penguins)+geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g, shape=species),color="yellow")
+
+#Creates a smooth line instead of points
+ggplot(data=penguins)+geom_smooth(mapping = aes(x = flipper_length_mm, y= body_mass_g))
+
+#Creates a smooth line and a scatter plot in the same graph
+ggplot(data=penguins)+geom_smooth(mapping = aes(x = flipper_length_mm, y= body_mass_g)) + 
+  geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g))
+
+#Plot a separate line for each species of penguin
+ggplot(data=penguins)+geom_smooth(mapping = aes(x = flipper_length_mm, y= body_mass_g,linetype=species))
+
+#creates a scatter plot with random noise, helps with over ploting
+ggplot(data=penguins)+geom_jitter(mapping = aes(x = flipper_length_mm, y= body_mass_g))
+
+## Facet functions
+#Shows the correlation between body mass and flipper length for each species of penguin
+ggplot(data=penguins,aes(x = flipper_length_mm, y= body_mass_g))+ 
+  geom_point(aes(color= species))+
+  facet_wrap(~species)
+
+#Facets grid split the plot into facets vertically by the values of the first variable and horizontally by the values of the second variable
+ggplot(data=penguins)+
+  geom_point(mapping= aes(x = flipper_length_mm, y= body_mass_g,color=species))+
+  facet_grid(sex~species)
+
+#Facets grid but just showing species
+ggplot(data=penguins)+
+  geom_point(mapping= aes(x = flipper_length_mm, y= body_mass_g,color=species))+
+  facet_grid(~species)
+
+#Facets grid but just showing sex
+ggplot(data=penguins)+
+  geom_point(mapping= aes(x = flipper_length_mm, y= body_mass_g,color=species))+
+  facet_grid(~sex)
+
+##Adding tittles, subtitles, captions and annotations to the chart
+ggplot(data=penguins)+
+  geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g,color=species)) + 
+  labs(title="Palmer Penguins: Body Mass vs Flipper Length", 
+       subtitle="Sample of Three Penguin Species",
+       caption = "Data collected by Dr. Kristen Gorman")+
+annotate("text",x=220, y=3500, label="Gentoos are the largest",color="purple", fontface="bold",size=4.5, angle=30)
+
+#Saving it to a variable
+p <- ggplot(data=penguins)+
+  geom_point(mapping = aes(x = flipper_length_mm, y= body_mass_g,color=species)) + 
+  labs(title="Palmer Penguins: Body Mass vs Flipper Length", 
+       subtitle="Sample of Three Penguin Species",
+       caption = "Data collected by Dr. Kristen Gorman")+
+  annotate("text",x=220, y=3500, label="Gentoos are the largest",color="purple", fontface="bold",size=4.5, angle=30)
+#Calling P variable
+p
+
+##Saving our chart, it creates an image in the files tab
+ggsave("Sample of Three Penguin Species.png")
+----------------------------------------------------------------------------------------------------------------
+### USING DIAMONDS DATASET
+install.packages(diamonds)
+library(diamonds)
+View(diamonds)
+
+#Give me the first 6 rows
+head(diamonds)
+
+#High level info about the dataset
+str(diamonds)
+
+#Just want the column names
+colnames(diamonds)
+
+#Adding a new column 
+library(tidyverse)
+mutate(diamonds, carat_2 = carat*100)
+
+## Different visualizations with Diamonds data set
+#creates a bar chart 
+  ggplot(data=diamonds)+geom_bar(mapping = aes(x = cut))
+
+#creates a bar chart and adds color to outline of each bar 
+ggplot(data=diamonds)+geom_bar(mapping = aes(x = cut,color=cut))
+
+#creates a bar chart and fills every bar with color
+ggplot(data=diamonds)+geom_bar(mapping = aes(x = cut,fill=cut))
+
+#creates a stacked bar chart
+ggplot(data=diamonds)+geom_bar(mapping = aes(x = cut,fill=clarity))
+  
+## Facet functions
+#creates a separate plot for each category of cut
+ggplot(data=diamonds)+ 
+  geom_bar(mapping= aes(x=color, fill=cut))+
+  facet_wrap(~cut)
